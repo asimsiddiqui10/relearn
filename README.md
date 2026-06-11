@@ -27,15 +27,30 @@ uv sync --all-packages
 
 ## Status
 
-**Phase 0 (foundation) — complete and verified end-to-end.** signup → personal
+**Phase 0 (foundation) — complete, verified end-to-end.** signup → personal
 space → PDF upload → sha256 → S3 → arq worker (dedup, Marker-tree normalize, map,
 embed, quality gates, transactional commit) → resource ready → structure tree +
-presigned PDF for the visualizer. CORS + presigned fetch confirmed for the browser.
-Ingestion replays from the S3 parse cache, so no Datalab key is needed in dev
-(`EMBEDDINGS_FAKE=1` skips the BGE-M3 download with deterministic vectors).
+presigned PDF for the visualizer.
 
-Next: Phase 1 — agentic core (agent loop, retrieval tools, evidence/citation
-contract, SSE streaming, chat UI, citation→highlight).
+**Phase 1 (agentic core) — built and tested with a scripted model.** Hybrid
+retrieval (pgvector + tsv, RRF, heading boost) behind tools (search_chunks,
+get_toc, read_section, expand_chunk, get_images); evidence registry with stable
+`[E#]` ids; the ~200-line agent loop (model → tools → results → repeat) emitting
+the full SSE event taxonomy with HITL suspend/resume; AI `/chat` SSE endpoint +
+backend proxy persisting runs/events/answers; chat UI with the streaming block
+renderer and citation→PDF-highlight. 27 backend/AI tests + 5 frontend reducer
+tests green.
+
+> **To run Phase 1 live you must add a model key** (`GEMINI_API_KEY` for the free
+> dev default) to `.env` and restart the AI service. Without it the loop/tools/UI
+> are exercised by tests but no real model call is made.
+
+**Not yet done in Phase 1:** eval set v1 (30–50 NEET questions) + model bench —
+needs real material + a model key (spec/07).
+
+Dev note: ingestion replays from the S3 parse cache, so no Datalab key is needed
+once a doc is cached; `EMBEDDINGS_FAKE=1` skips the BGE-M3 download with
+deterministic vectors for tests.
 
 Services (Phase 0+):
 
