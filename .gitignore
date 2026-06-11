@@ -1,0 +1,27 @@
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# build output
+dist/
+build/
+.next/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# claude local state
+.claude/settings.local.json
+
+# local reference clone (separate git repo, not pushed)
+mike-oss/
