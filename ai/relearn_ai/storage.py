@@ -16,7 +16,7 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from app.config import get_settings
+from relearn_ai.config import get_settings
 
 
 def _client():

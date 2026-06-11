@@ -4,9 +4,9 @@ import json
 import uuid
 from pathlib import Path
 
-from app.ingestion.marker_payload import normalize_marker_payload
-from app.ingestion.normalize_tree import normalize_marker_tree
-from app.ingestion.tree_mapper import figure_ref_norm_from_text, map_marker_document_tree
+from relearn_ai.ingestion.marker_payload import normalize_marker_payload
+from relearn_ai.ingestion.normalize_tree import normalize_marker_tree
+from relearn_ai.ingestion.tree_mapper import figure_ref_norm_from_text, map_marker_document_tree
 
 FIXTURE = Path(__file__).parent / "fixtures" / "marker_sample.json"
 

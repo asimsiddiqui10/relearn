@@ -19,7 +19,7 @@ _observe = None
 def _init() -> None:
     global _langfuse, _observe
     try:
-        from app.config import get_settings
+        from relearn_ai.config import get_settings
 
         settings = get_settings()
         if not (settings.langfuse_public_key and settings.langfuse_secret_key):

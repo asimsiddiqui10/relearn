@@ -14,9 +14,9 @@ import logging
 
 from openai import AsyncOpenAI
 
-from app.config import get_settings
-from app.llm.registry import ModelConfig, get_registry
-from app.observability import observe
+from relearn_ai.config import get_settings
+from relearn_ai.llm.registry import ModelConfig, get_registry
+from relearn_ai.observability import observe
 
 logger = logging.getLogger(__name__)
 

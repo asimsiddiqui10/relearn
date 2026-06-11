@@ -15,8 +15,8 @@ from sqlalchemy import select, text
 from relearn_db.engine import create_engine_and_sessionmaker
 from relearn_db.models import Chunk, Document, IngestJob, Resource, Space, StructureNode, User
 
-from app import storage
-from app.ingestion.pipeline import run_pipeline
+from relearn_ai import storage
+from relearn_ai.ingestion.pipeline import run_pipeline
 
 FIXTURE = Path(__file__).parent / "fixtures" / "marker_sample.json"
 os.environ.setdefault("EMBEDDINGS_FAKE", "1")

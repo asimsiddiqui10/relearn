@@ -28,7 +28,7 @@ uv sync --all-packages
 Services (Phase 0+):
 
 ```bash
-(cd backend  && uv run uvicorn app.main:app --port 8000 --reload)
-(cd ai       && uv run arq app.worker.WorkerSettings)        # ingestion worker
+(cd backend  && uv run uvicorn relearn_backend.main:app --port 8000 --reload)
+(cd ai       && uv run arq relearn_ai.worker.WorkerSettings)        # ingestion worker
 (cd frontend && pnpm dev)                                     # http://localhost:3000
 ```

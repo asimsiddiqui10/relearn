@@ -26,23 +26,23 @@ from relearn_db.models import (
     StructureNode,
 )
 
-from app import storage
-from app.config import get_settings
-from app.ingestion import datalab
-from app.ingestion.gates import run_quality_gates
-from app.ingestion.marker_payload import (
+from relearn_ai import storage
+from relearn_ai.config import get_settings
+from relearn_ai.ingestion import datalab
+from relearn_ai.ingestion.gates import run_quality_gates
+from relearn_ai.ingestion.marker_payload import (
     MARKER_INGEST_PARSER_VERSION,
     document_metadata_for_db,
     normalize_marker_payload,
 )
-from app.ingestion.normalize_tree import normalize_marker_tree
-from app.ingestion.tree_mapper import (
+from relearn_ai.ingestion.normalize_tree import normalize_marker_tree
+from relearn_ai.ingestion.tree_mapper import (
     MappedDocument,
     map_marker_document_tree,
     strip_images_recursive,
 )
-from app.llm import embed
-from app.observability import observe
+from relearn_ai.llm import embed
+from relearn_ai.observability import observe
 
 logger = logging.getLogger(__name__)
 
@@ -263,7 +263,7 @@ def _page_dimensions(document_root: dict[str, Any]) -> dict[str, list[float]]:
     for page in document_root.get("children") or []:
         if not isinstance(page, dict) or page.get("block_type") != "Page":
             continue
-        from app.ingestion.tree_mapper import parse_page_number
+        from relearn_ai.ingestion.tree_mapper import parse_page_number
 
         pnum = parse_page_number(page.get("id"))
         bbox = page.get("bbox")

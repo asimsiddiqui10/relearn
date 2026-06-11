@@ -12,7 +12,7 @@ from typing import Any
 
 import httpx
 
-from app.observability import observe
+from relearn_ai.observability import observe
 
 logger = logging.getLogger(__name__)
 

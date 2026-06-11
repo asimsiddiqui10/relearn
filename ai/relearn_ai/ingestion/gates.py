@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.ingestion.tree_mapper import MappedDocument
+from relearn_ai.ingestion.tree_mapper import MappedDocument
 
 # thresholds (v1-calibrated)
 MIN_NONEMPTY_TEXT_RATIO = 0.3  # below → likely scanned/encoded PDF

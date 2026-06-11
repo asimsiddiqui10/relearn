@@ -12,8 +12,8 @@ from arq.connections import RedisSettings
 
 from relearn_db.engine import create_engine_and_sessionmaker
 
-from app.config import get_settings
-from app.ingestion.pipeline import run_pipeline
+from relearn_ai.config import get_settings
+from relearn_ai.ingestion.pipeline import run_pipeline
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
