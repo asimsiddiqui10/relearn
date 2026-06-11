@@ -9,6 +9,7 @@ from relearn_backend.config import get_settings
 from relearn_backend.db import dispose_engine
 from relearn_backend.routers import (
     auth_router,
+    chat_router,
     documents_router,
     resources_router,
     spaces_router,
@@ -35,6 +36,7 @@ app.include_router(auth_router.router)
 app.include_router(spaces_router.router)
 app.include_router(resources_router.router)
 app.include_router(documents_router.router)
+app.include_router(chat_router.router)
 
 
 @app.get("/health")

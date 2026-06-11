@@ -69,6 +69,31 @@ class StructureNodeOut(BaseModel):
     subtree_chunk_count: int
 
 
+class ChatSessionCreate(BaseModel):
+    title: str | None = None
+
+
+class ChatSessionOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    title: str | None
+    visibility: str
+    created_at: datetime
+
+
+class ChatMessageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    role: str
+    content: str
+    citations_json: dict | None
+    created_at: datetime
+
+
+class ChatSendRequest(BaseModel):
+    message: str
+
+
 class DocumentMeta(BaseModel):
     id: uuid.UUID
     doc_type: str
