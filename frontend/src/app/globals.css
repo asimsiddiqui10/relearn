@@ -1,0 +1,64 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Inter for UI chrome, EB Garamond for headings + answer prose — the
+   "document, not SaaS" feel (spec/11). Wired via next/font in layout.tsx. */
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-eb-garamond), ui-serif, Georgia, serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-card: var(--card);
+  --color-destructive: var(--destructive);
+  --radius-lg: 0.625rem;
+}
+
+:root {
+  --background: #fbfaf8;
+  --foreground: #1c1917;
+  --muted: #f2f0ec;
+  --muted-foreground: #78716c;
+  --border: #e7e3dc;
+  --primary: #1c1917;
+  --primary-foreground: #fbfaf8;
+  --accent: #2563eb;
+  --card: #ffffff;
+  --destructive: #dc2626;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1c1917;
+    --foreground: #f5f5f4;
+    --muted: #292524;
+    --muted-foreground: #a8a29e;
+    --border: #3a3531;
+    --primary: #f5f5f4;
+    --primary-foreground: #1c1917;
+    --accent: #60a5fa;
+    --card: #232020;
+    --destructive: #f87171;
+  }
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif);
+}
