@@ -20,7 +20,7 @@ export default function DocumentPage({
   const [meta, setMeta] = useState<DocumentMeta | null>(null);
   const [nodes, setNodes] = useState<StructureNode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [jumpPage, setJumpPage] = useState(1);
+  const [jump, setJump] = useState<{ page: number; nonce: number }>();
 
   useEffect(() => {
     Promise.all([api.getDocument(docId), api.getStructure(docId)])
@@ -56,14 +56,16 @@ export default function DocumentPage({
           <h2 className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Contents
           </h2>
-          <StructureTree nodes={nodes} onJump={setJumpPage} />
+          <StructureTree
+            nodes={nodes}
+            onJump={(page) => setJump((j) => ({ page, nonce: (j?.nonce ?? 0) + 1 }))}
+          />
         </aside>
         <div className="min-w-0 flex-1">
           <DocumentVisualizer
-            key={jumpPage}
             pdfUrl={meta.pdf_url}
             pageDimensions={meta.page_dimensions}
-            initialPage={jumpPage}
+            jumpTarget={jump}
           />
         </div>
       </div>

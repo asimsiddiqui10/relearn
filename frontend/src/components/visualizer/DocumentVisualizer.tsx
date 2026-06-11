@@ -19,21 +19,22 @@ type State = "loading" | "ready" | "error";
 interface Props {
   pdfUrl: string;
   pageDimensions: Record<string, [number, number]>; // "0"-based page index → [w,h]
-  initialPage?: number; // 1-based
+  // a jump request; bump `nonce` to re-trigger a jump to the same page
+  jumpTarget?: { page: number; nonce: number };
   highlights?: Record<number, Highlight[]>; // 1-based page → highlights
 }
 
 export function DocumentVisualizer({
   pdfUrl,
   pageDimensions,
-  initialPage = 1,
+  jumpTarget,
   highlights = {},
 }: Props) {
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
   const [state, setState] = useState<State>("loading");
   const [numPages, setNumPages] = useState(0);
   const [width, setWidth] = useState(0);
-  const [visiblePages, setVisiblePages] = useState<Set<number>>(new Set([initialPage]));
+  const [visiblePages, setVisiblePages] = useState<Set<number>>(new Set([1, 2]));
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
@@ -91,12 +92,21 @@ export function DocumentVisualizer({
     return () => io.disconnect();
   }, [state, numPages]);
 
-  // jump to initialPage once rendered
+  // jump to a requested page (structure-tree click). Driven by jumpTarget.nonce
+  // so clicking the same heading twice re-scrolls. Deferred to rAF so the scroll
+  // runs after the page divs have their real (post-width-measure) heights —
+  // otherwise it scrolls before layout settles and lands in the wrong place.
   useEffect(() => {
-    if (state !== "ready" || initialPage <= 1) return;
-    const el = pageRefs.current.get(initialPage);
-    el?.scrollIntoView({ block: "start" });
-  }, [state, initialPage]);
+    if (!jumpTarget || state !== "ready" || width === 0) return;
+    const el = pageRefs.current.get(jumpTarget.page);
+    if (!el) return;
+    const id = requestAnimationFrame(() =>
+      el.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
+    return () => cancelAnimationFrame(id);
+    // width in deps: if the jump arrives before the first measure, re-run once
+    // width is known so the scroll still happens.
+  }, [jumpTarget?.nonce, jumpTarget?.page, state, width]);
 
   const pages = useMemo(
     () => Array.from({ length: numPages }, (_, i) => i + 1),
