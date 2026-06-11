@@ -4,10 +4,6 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import type { StructureNode } from "@/lib/types";
 
-/**
- * Document structure (TOC) tree. Clicking a node jumps the visualizer to that
- * section's first page (reverse navigation is a Phase-1 citation concern).
- */
 interface TreeNode extends StructureNode {
   children: TreeNode[];
 }
@@ -40,10 +36,10 @@ function NodeRow({
       <button
         onClick={() => node.page_start != null && onJump(node.page_start + 1)}
         className={cn(
-          "w-full truncate rounded px-2 py-1 text-left text-sm hover:bg-muted",
-          depth === 0 ? "font-medium" : "text-muted-foreground",
+          "block w-full truncate rounded-md py-1.5 pr-2 text-left text-sm transition-colors hover:bg-accent",
+          depth === 0 ? "font-medium text-foreground" : "text-muted-foreground",
         )}
-        style={{ paddingLeft: 8 + depth * 14 }}
+        style={{ paddingLeft: 10 + depth * 14 }}
         title={node.heading_text ?? ""}
       >
         {node.heading_text || "(untitled)"}

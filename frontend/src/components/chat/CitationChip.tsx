@@ -20,10 +20,10 @@ export function CitationChip({
       onClick={() => citation && onClick?.(citation)}
       title={citation?.heading_breadcrumb ?? (resolvable ? "" : "unresolved citation")}
       className={cn(
-        "mx-0.5 inline-flex items-center rounded px-1 align-baseline text-[0.7em] font-medium",
+        "mx-0.5 inline-flex translate-y-[-1px] items-center rounded px-1 align-baseline font-sans text-[0.68em] font-semibold tracking-tight transition-colors",
         resolvable
-          ? "bg-accent/15 text-accent hover:bg-accent/25 cursor-pointer"
-          : "bg-destructive/15 text-destructive cursor-not-allowed",
+          ? "cursor-pointer bg-brand/12 text-brand hover:bg-brand/22"
+          : "cursor-not-allowed bg-destructive/12 text-destructive",
       )}
     >
       {eid}

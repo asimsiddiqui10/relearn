@@ -28,13 +28,15 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-center text-3xl">Relearn</h1>
-        <p className="mb-8 text-center text-sm text-muted-foreground">
-          Create an account to start building your spaces.
-        </p>
-        <form onSubmit={onSubmit} className="space-y-3">
+    <div className="flex min-h-dvh items-center justify-center p-4">
+      <div className="fade-rise w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <h1 className="font-serif text-4xl font-light">Relearn</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Create an account to build your spaces.
+          </p>
+        </div>
+        <form onSubmit={onSubmit} className="space-y-2.5">
           <Input placeholder="Name (optional)" value={name} onChange={(e) => setName(e.target.value)} />
           <Input
             type="email"
@@ -45,7 +47,7 @@ export default function SignupPage() {
           />
           <Input
             type="password"
-            placeholder="Password"
+            placeholder="Password (8+ characters)"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -58,7 +60,7 @@ export default function SignupPage() {
         </form>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/login" className="text-accent hover:underline">
+          <Link href="/login" className="text-brand hover:underline">
             Sign in
           </Link>
         </p>

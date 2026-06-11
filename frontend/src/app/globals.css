@@ -1,64 +1,223 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Inter for UI chrome, EB Garamond for headings + answer prose — the
-   "document, not SaaS" feel (spec/11). Wired via next/font in layout.tsx. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design language: MikeOSS structure (neutral grays, subtle borders/shadows)
+   warmed toward Claude's "document, not SaaS" paper feel. Inter for chrome,
+   EB Garamond for headings + answer prose. OkLCH throughout. */
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-eb-garamond), ui-serif, Georgia, serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
-  --color-card: var(--card);
+  --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
-  --radius-lg: 0.625rem;
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-brand: var(--brand);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 :root {
-  --background: #fbfaf8;
-  --foreground: #1c1917;
-  --muted: #f2f0ec;
-  --muted-foreground: #78716c;
-  --border: #e7e3dc;
-  --primary: #1c1917;
-  --primary-foreground: #fbfaf8;
-  --accent: #2563eb;
-  --card: #ffffff;
-  --destructive: #dc2626;
+  --radius: 0.625rem;
+
+  /* warm paper neutrals */
+  --background: oklch(0.992 0.003 85);
+  --foreground: oklch(0.22 0.008 60);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.008 60);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.008 60);
+
+  --primary: oklch(0.24 0.01 55);
+  --primary-foreground: oklch(0.985 0.003 85);
+  --secondary: oklch(0.965 0.004 80);
+  --secondary-foreground: oklch(0.24 0.01 55);
+  --muted: oklch(0.965 0.004 80);
+  --muted-foreground: oklch(0.55 0.01 60);
+  --accent: oklch(0.96 0.006 70);
+  --accent-foreground: oklch(0.24 0.01 55);
+
+  /* clay accent — Claude-ish, used sparingly (focus, active, citations) */
+  --brand: oklch(0.62 0.12 40);
+
+  --destructive: oklch(0.58 0.21 25);
+  --border: oklch(0.905 0.005 75);
+  --input: oklch(0.905 0.005 75);
+  --ring: oklch(0.62 0.12 40);
+
+  --sidebar: oklch(0.975 0.004 80);
+  --sidebar-border: oklch(0.9 0.005 75);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1c1917;
-    --foreground: #f5f5f4;
-    --muted: #292524;
-    --muted-foreground: #a8a29e;
-    --border: #3a3531;
-    --primary: #f5f5f4;
-    --primary-foreground: #1c1917;
-    --accent: #60a5fa;
-    --card: #232020;
-    --destructive: #f87171;
-  }
+.dark {
+  --background: oklch(0.2 0.006 60);
+  --foreground: oklch(0.96 0.004 80);
+  --card: oklch(0.245 0.007 60);
+  --card-foreground: oklch(0.96 0.004 80);
+  --popover: oklch(0.245 0.007 60);
+  --popover-foreground: oklch(0.96 0.004 80);
+
+  --primary: oklch(0.92 0.004 80);
+  --primary-foreground: oklch(0.24 0.01 55);
+  --secondary: oklch(0.28 0.007 60);
+  --secondary-foreground: oklch(0.96 0.004 80);
+  --muted: oklch(0.28 0.007 60);
+  --muted-foreground: oklch(0.66 0.01 65);
+  --accent: oklch(0.3 0.008 60);
+  --accent-foreground: oklch(0.96 0.004 80);
+
+  --brand: oklch(0.7 0.12 42);
+
+  --destructive: oklch(0.65 0.19 25);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.7 0.12 42);
+
+  --sidebar: oklch(0.225 0.006 60);
+  --sidebar-border: oklch(1 0 0 / 8%);
 }
 
 * {
   border-color: var(--border);
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-h1, h2, h3, .font-serif {
+h1,
+h2,
+h3 {
   font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* answer prose — EB Garamond, the document feel */
+.prose-answer {
+  font-family: var(--font-serif);
+}
+.prose-answer p {
+  margin: 0 0 0.6em;
+}
+.prose-answer p:last-child {
+  margin-bottom: 0;
+}
+.prose-answer h1,
+.prose-answer h2,
+.prose-answer h3 {
+  margin: 0.8em 0 0.3em;
+  line-height: 1.25;
+}
+.prose-answer ul,
+.prose-answer ol {
+  margin: 0.4em 0 0.6em;
+  padding-left: 1.3em;
+}
+.prose-answer li {
+  margin: 0.15em 0;
+}
+.prose-answer ul {
+  list-style: disc;
+}
+.prose-answer ol {
+  list-style: decimal;
+}
+.prose-answer code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85em;
+  background: var(--muted);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+.prose-answer strong {
+  font-weight: 600;
+}
+
+/* quiet, thin scrollbars (Claude/Mike feel) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--foreground) 18%, transparent) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--foreground) 16%, transparent);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--foreground) 28%, transparent);
+  background-clip: padding-box;
+}
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* staggered sidebar entrance */
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-rise {
+  animation: fade-rise 0.35s ease-out both;
+}
+
+/* citation highlight pulse in the PDF overlay */
+@keyframes cite-pulse {
+  0% {
+    opacity: 0.15;
+  }
+  40% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0.32;
+  }
+}
+.cite-pulse {
+  animation: cite-pulse 1s ease-out;
 }

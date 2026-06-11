@@ -76,7 +76,7 @@ export function PdfPage({ doc, pageNumber, width, markerDims, highlights = [], v
 
   return (
     <div
-      className="relative mx-auto border border-border bg-white shadow-sm"
+      className="relative mx-auto overflow-hidden rounded-md border border-border bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
       style={{ width, height }}
     >
       {!rendered && !error && (
@@ -100,17 +100,23 @@ export function PdfPage({ doc, pageNumber, width, markerDims, highlights = [], v
           preserveAspectRatio="none"
         >
           {highlights.map((h) => {
+            // active highlight uses the clay brand color → ties the clay
+            // citation chip you clicked to the region it points at.
+            const fill = h.active ? "var(--brand)" : "var(--brand)";
+            const style = {
+              fill,
+              fillOpacity: h.active ? 0.22 : 0.1,
+              stroke: fill,
+              strokeOpacity: h.active ? 0.85 : 0.35,
+            };
             if (h.polygon && h.polygon.length >= 3) {
               return (
                 <polygon
                   key={h.id}
                   points={h.polygon.map((p) => p.join(",")).join(" ")}
-                  className={
-                    h.active
-                      ? "fill-amber-300/40 stroke-amber-500"
-                      : "fill-amber-200/20 stroke-amber-400/40"
-                  }
+                  style={style}
                   strokeWidth={2}
+                  className={h.active ? "cite-pulse" : undefined}
                 />
               );
             }
@@ -123,12 +129,10 @@ export function PdfPage({ doc, pageNumber, width, markerDims, highlights = [], v
                   y={y0}
                   width={x1 - x0}
                   height={y1 - y0}
-                  className={
-                    h.active
-                      ? "fill-amber-300/40 stroke-amber-500"
-                      : "fill-amber-200/20 stroke-amber-400/40"
-                  }
+                  rx={2}
+                  style={style}
                   strokeWidth={2}
+                  className={h.active ? "cite-pulse" : undefined}
                 />
               );
             }

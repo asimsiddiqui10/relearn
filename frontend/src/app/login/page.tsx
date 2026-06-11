@@ -27,13 +27,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <h1 className="mb-1 text-center text-3xl">Relearn</h1>
-        <p className="mb-8 text-center text-sm text-muted-foreground">
-          Welcome back — sign in to your spaces.
-        </p>
-        <form onSubmit={onSubmit} className="space-y-3">
+    <div className="flex min-h-dvh items-center justify-center p-4">
+      <div className="fade-rise w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <h1 className="font-serif text-4xl font-light">Relearn</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Citation-first study, grounded in your own material.
+          </p>
+        </div>
+        <form onSubmit={onSubmit} className="space-y-2.5">
           <Input
             type="email"
             placeholder="Email"
@@ -55,7 +57,7 @@ export default function LoginPage() {
         </form>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           No account?{" "}
-          <Link href="/signup" className="text-accent hover:underline">
+          <Link href="/signup" className="text-brand hover:underline">
             Sign up
           </Link>
         </p>

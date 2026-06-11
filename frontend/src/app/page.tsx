@@ -15,8 +15,8 @@ export default function Home() {
   }, [user, loading, router]);
 
   return (
-    <div className="flex h-screen items-center justify-center">
-      <Spinner className="h-6 w-6 text-muted-foreground" />
+    <div className="flex h-dvh items-center justify-center">
+      <Spinner className="h-5 w-5 text-muted-foreground" />
     </div>
   );
 }

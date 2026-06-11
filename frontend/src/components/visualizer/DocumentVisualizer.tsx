@@ -129,8 +129,8 @@ export function DocumentVisualizer({
   }
 
   return (
-    <div ref={scrollRef} className="h-full overflow-auto bg-muted/40 px-4 py-4">
-      <div className="space-y-4">
+    <div ref={scrollRef} className="h-full overflow-auto bg-muted/30 px-4 py-5">
+      <div className="space-y-5">
         {pages.map((p) => (
           <div
             key={p}
@@ -151,7 +151,9 @@ export function DocumentVisualizer({
                 visible={visiblePages.has(p)}
               />
             )}
-            <div className="mt-1 text-center text-xs text-muted-foreground">{p}</div>
+            <div className="mt-1.5 text-center text-[11px] tabular-nums text-muted-foreground/70">
+              {p}
+            </div>
           </div>
         ))}
       </div>
