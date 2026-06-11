@@ -1,0 +1,55 @@
+# Model registry (spec/06). Application code asks for a ROLE, never a model.
+# Dev bootstrap: gemini-flash free tier for agent+small; BGE-M3 local embeddings.
+# Phase 1 bench replaces the agent primary with the winner (Kimi K2 / Qwen3-235B / GLM-4.6).
+
+roles:
+  agent:
+    primary: gemini-flash
+  small:
+    primary: gemini-flash
+  embeddings:
+    primary: bge-m3-local
+
+models:
+  gemini-flash:
+    provider: openai_compat
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+    api_key_env: GEMINI_API_KEY
+    model_id: gemini-2.5-flash
+    capabilities:
+      tool_calling: true
+      structured_output: true
+      reasoning_content: false
+      parallel_tools: true
+    context_window: 1000000
+
+  kimi-k2-openrouter:
+    provider: openai_compat
+    base_url: https://openrouter.ai/api/v1
+    api_key_env: OPENROUTER_API_KEY
+    model_id: moonshotai/kimi-k2
+    capabilities:
+      tool_calling: true
+      structured_output: true
+      reasoning_content: true
+      parallel_tools: true
+    context_window: 128000
+    cost_per_mtok: {input: 0.6, output: 2.5}
+
+  claude-sonnet:
+    # debug baseline (spec/06 dev baseline rule) — removable by config
+    provider: openai_compat
+    base_url: https://api.anthropic.com/v1/
+    api_key_env: ANTHROPIC_API_KEY
+    model_id: claude-sonnet-4-6
+    capabilities:
+      tool_calling: true
+      structured_output: true
+      reasoning_content: false
+      parallel_tools: true
+    context_window: 200000
+
+  bge-m3-local:
+    provider: local_embeddings
+    model_id: BAAI/bge-m3
+    dim: 1024
