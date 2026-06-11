@@ -7,6 +7,14 @@ import type {
   Space,
   StructureNode,
 } from "./types";
+import type { ChatMessageRow } from "./chat-types";
+
+export interface ChatSession {
+  id: string;
+  title: string | null;
+  visibility: string;
+  created_at: string;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const TOKEN_KEY = "relearn_token";
@@ -89,4 +97,14 @@ export const api = {
   getDocument: (documentId: string) => request<DocumentMeta>(`/documents/${documentId}`),
   getStructure: (documentId: string) =>
     request<StructureNode[]>(`/documents/${documentId}/structure`),
+
+  listChatSessions: (spaceId: string) =>
+    request<ChatSession[]>(`/spaces/${spaceId}/chat/sessions`),
+  createChatSession: (spaceId: string, title?: string) =>
+    request<ChatSession>(`/spaces/${spaceId}/chat/sessions`, {
+      method: "POST",
+      body: JSON.stringify({ title }),
+    }),
+  listChatMessages: (sessionId: string) =>
+    request<ChatMessageRow[]>(`/chat/sessions/${sessionId}/messages`),
 };

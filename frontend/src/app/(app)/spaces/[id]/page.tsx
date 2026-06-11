@@ -2,11 +2,12 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText } from "lucide-react";
+import { FileText, MessageSquare } from "lucide-react";
 import { api } from "@/lib/api";
 import type { Resource, Space } from "@/lib/types";
 import { UploadCard } from "@/components/UploadCard";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { useIngestStatus } from "@/hooks/useIngestStatus";
@@ -43,7 +44,23 @@ export default function SpacePage({ params }: { params: Promise<{ id: string }> 
 
   return (
     <div className="mx-auto max-w-4xl p-8">
-      <h1 className="mb-1 text-2xl font-serif">{space?.name}</h1>
+      <div className="mb-1 flex items-center justify-between">
+        <h1 className="text-2xl font-serif">{space?.name}</h1>
+        <Button
+          onClick={async () => {
+            const cs = await api.createChatSession(id);
+            router.push(`/spaces/${id}/chat/${cs.id}`);
+          }}
+          disabled={!resources.some((r) => r.status === "ready")}
+          title={
+            resources.some((r) => r.status === "ready")
+              ? "Ask about your documents"
+              : "Upload and ingest a document first"
+          }
+        >
+          <MessageSquare className="h-4 w-4" /> New chat
+        </Button>
+      </div>
       {space?.description && <p className="mb-6 text-muted-foreground">{space.description}</p>}
 
       <div className="mb-6">
