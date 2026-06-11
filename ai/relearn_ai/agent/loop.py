@@ -30,6 +30,13 @@ Streamer = Callable[..., AsyncIterator[Delta]]
 Checkpoint = Callable[[dict], Awaitable[None]]
 
 
+async def default_streamer(messages: list[dict], *, tools: list[dict] | None = None):
+    """Production streamer: binds the 'agent' role to stream_turn so the loop's
+    streamer contract is just (messages, *, tools) — matching test fakes."""
+    async for delta in stream_turn("agent", messages, tools=tools):
+        yield delta
+
+
 def _clock_ms() -> int:
     return int(time.monotonic() * 1000)
 
@@ -44,7 +51,7 @@ async def run_agent(
     db: AsyncSession,
     *,
     tools: list[Tool] | None = None,
-    streamer: Streamer = stream_turn,
+    streamer: Streamer = default_streamer,
     model_label: str = "agent",
     checkpoint: Checkpoint | None = None,
     start_seq: int = 0,

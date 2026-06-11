@@ -4,6 +4,7 @@ it happens. Each event carries a monotonic seq for reconnect-replay."""
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -15,8 +16,10 @@ class Event:
     seq: int = 0  # assigned by the emitter
 
     def sse(self) -> dict[str, Any]:
-        """Shape for sse-starlette EventSourceResponse: {event, data}."""
-        return {"event": self.type, "data": {**self.data, "seq": self.seq}}
+        """Shape for sse-starlette EventSourceResponse: {event, data}. data MUST
+        be a JSON string — sse-starlette str()'s non-strings into Python repr
+        (single quotes), which the browser's JSON.parse can't read."""
+        return {"event": self.type, "data": json.dumps({**self.data, "seq": self.seq})}
 
 
 # constructors — keep payload keys aligned with spec/04 + frontend reducer

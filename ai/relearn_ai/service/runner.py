@@ -24,10 +24,9 @@ from relearn_db.models import (
 
 from relearn_ai.agent import events as ev
 from relearn_ai.agent.evidence import EvidenceRegistry, RunContext
-from relearn_ai.agent.loop import Streamer, run_agent
+from relearn_ai.agent.loop import Streamer, default_streamer, run_agent
 from relearn_ai.agent.prompt import SpaceContext, build_system_prompt
 from relearn_ai.agent.tools import doc_slugs
-from relearn_ai.llm.stream import stream_turn
 
 # how many prior turns to replay verbatim (rolling-compaction summary is spec/03 later)
 _HISTORY_TURNS = 12
@@ -84,7 +83,7 @@ async def run_chat_turn(
     session_id: uuid.UUID,
     space_id: uuid.UUID,
     user_message: str,
-    streamer: Streamer = stream_turn,
+    streamer: Streamer = default_streamer,
 ) -> AsyncIterator[ev.Event]:
     """Create a run, stream + persist its events, and save the assistant reply."""
     space_ctx, document_ids = await _space_context(session, space_id)
