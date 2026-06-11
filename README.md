@@ -25,6 +25,18 @@ uv sync --all-packages
 (cd packages/db && uv run alembic upgrade head)
 ```
 
+## Status
+
+**Phase 0 (foundation) — complete and verified end-to-end.** signup → personal
+space → PDF upload → sha256 → S3 → arq worker (dedup, Marker-tree normalize, map,
+embed, quality gates, transactional commit) → resource ready → structure tree +
+presigned PDF for the visualizer. CORS + presigned fetch confirmed for the browser.
+Ingestion replays from the S3 parse cache, so no Datalab key is needed in dev
+(`EMBEDDINGS_FAKE=1` skips the BGE-M3 download with deterministic vectors).
+
+Next: Phase 1 — agentic core (agent loop, retrieval tools, evidence/citation
+contract, SSE streaming, chat UI, citation→highlight).
+
 Services (Phase 0+):
 
 ```bash
