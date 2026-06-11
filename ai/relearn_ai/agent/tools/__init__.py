@@ -1,5 +1,6 @@
 """Tool registry."""
 
+from relearn_ai.agent.tools.ask_user import AskUser
 from relearn_ai.agent.tools.base import Tool, ToolResult
 from relearn_ai.agent.tools.retrieval_tools import (
     ExpandChunk,
@@ -18,6 +19,9 @@ RETRIEVAL_TOOLS: list[Tool] = [
     GetImages(),
 ]
 
-TOOLS: dict[str, Tool] = {t.name: t for t in RETRIEVAL_TOOLS}
+# the agent's full v1 tool set (spec/03)
+ALL_TOOLS: list[Tool] = [*RETRIEVAL_TOOLS, AskUser()]
 
-__all__ = ["Tool", "ToolResult", "TOOLS", "RETRIEVAL_TOOLS", "doc_slugs"]
+TOOLS: dict[str, Tool] = {t.name: t for t in ALL_TOOLS}
+
+__all__ = ["Tool", "ToolResult", "TOOLS", "ALL_TOOLS", "RETRIEVAL_TOOLS", "doc_slugs"]
