@@ -56,6 +56,11 @@ Services (Phase 0+):
 
 ```bash
 (cd backend  && uv run uvicorn relearn_backend.main:app --port 8000 --reload)
+(cd ai       && uv run uvicorn relearn_ai.main:app --port 8001 --reload)  # AI service (agent /chat SSE)
 (cd ai       && uv run arq relearn_ai.worker.WorkerSettings)        # ingestion worker
 (cd frontend && pnpm dev)                                     # http://localhost:3000
 ```
+
+> Restart the AI service after any change under `ai/` — a stale process serves
+> old code (and a pre-fix process won't have model keys, so the agent silently
+> dies mid-stream).

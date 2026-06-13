@@ -122,11 +122,52 @@ async def embed(texts: list[str]) -> list[list[float]]:
     if get_settings().embeddings_fake:
         return [_fake_embedding(t, dim) for t in safe_texts]
 
+    if model_cfg.provider == "openai_compat":
+        return await _embed_openai_compat(model_cfg, safe_texts, dim)
+    if model_cfg.provider == "local_embeddings":
+        return await _embed_bge(safe_texts)
+    raise LLMError(f"embeddings provider {model_cfg.provider!r} not supported")
+
+
+async def _embed_openai_compat(
+    model_cfg: ModelConfig, texts: list[str], dim: int
+) -> list[list[float]]:
+    """Hosted embeddings via the OpenAI-compatible endpoint (e.g. Gemini's
+    gemini-embedding-001). `dimensions` truncates to the schema's vector size."""
+    client = _openai_client(model_cfg)
+    out: list[list[float]] = []
+    for start in range(0, len(texts), _EMBED_BATCH_SIZE):
+        batch = texts[start : start + _EMBED_BATCH_SIZE]
+        last_error: Exception | None = None
+        for attempt in range(_MAX_ATTEMPTS):
+            try:
+                resp = await client.embeddings.create(
+                    model=model_cfg.model_id, input=batch, dimensions=dim
+                )
+                # data is returned in input order; some compat layers (Gemini)
+                # leave `index` null, so don't rely on it for ordering.
+                out.extend(d.embedding for d in resp.data)
+                break
+            except Exception as exc:  # 429/5xx/timeouts — backoff and retry
+                last_error = exc
+                wait = 2**attempt
+                logger.warning(
+                    "embed batch [%d:%d] failed (%s); retrying in %ds",
+                    start, start + len(batch), exc, wait,
+                )
+                await asyncio.sleep(wait)
+        else:
+            raise LLMError(f"embeddings failed after retries: {last_error}")
+    return out
+
+
+async def _embed_bge(texts: list[str]) -> list[list[float]]:
+    """Local BGE-M3 (provider=local_embeddings). Requires the FlagEmbedding extra."""
     model = await _get_bge()
     loop = asyncio.get_running_loop()
     all_vectors: list[list[float]] = []
-    for start in range(0, len(safe_texts), _EMBED_BATCH_SIZE):
-        batch = safe_texts[start : start + _EMBED_BATCH_SIZE]
+    for start in range(0, len(texts), _EMBED_BATCH_SIZE):
+        batch = texts[start : start + _EMBED_BATCH_SIZE]
 
         def _encode(b=batch):
             result = model.encode(b, batch_size=len(b), max_length=8192)

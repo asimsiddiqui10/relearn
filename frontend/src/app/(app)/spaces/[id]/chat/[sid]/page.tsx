@@ -23,6 +23,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string; sid
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setReady(false);
     api
       .listChatMessages(sid)
       .then(seed)

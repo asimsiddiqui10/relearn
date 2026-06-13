@@ -1,9 +1,18 @@
 "use client";
 
-import type { AssistantMessage, CitationInfo } from "@/lib/chat-types";
+import type { AssistantMessage, Block, CitationInfo } from "@/lib/chat-types";
 import { TextBlock } from "./TextBlock";
-import { ThinkingBlock, ToolBlock, ConfidenceChip } from "./blocks";
+import { ConfidenceChip } from "./blocks";
+import { AgentActivity } from "./AgentActivity";
 
+type ActivityBlock = Extract<Block, { kind: "thinking" | "tool" }>;
+
+/**
+ * Renders one assistant turn. Consecutive thinking/tool blocks collapse into a
+ * single live "activity" box (Claude-Code style); answer text streams below it;
+ * clarifications get their own card. Walking the block list preserves the true
+ * chronology even across multiple tool→text rounds.
+ */
 export function AssistantMessageView({
   message,
   onCite,
@@ -11,22 +20,46 @@ export function AssistantMessageView({
   message: AssistantMessage;
   onCite: (c: CitationInfo) => void;
 }) {
-  // group the leading run of thinking/tool blocks into a quiet timeline rail
+  const evidenceCount = Object.keys(message.citations).length;
+
+  // group the block stream into ordered segments
+  const segments: ({ type: "activity"; blocks: ActivityBlock[] } | { type: "block"; block: Block })[] =
+    [];
+  for (const block of message.blocks) {
+    if (block.kind === "thinking" || block.kind === "tool") {
+      const last = segments[segments.length - 1];
+      if (last && last.type === "activity") last.blocks.push(block);
+      else segments.push({ type: "activity", blocks: [block] });
+    } else {
+      segments.push({ type: "block", block });
+    }
+  }
+
+  const hasText = message.blocks.some((b) => b.kind === "text");
+
   return (
-    <div className="space-y-2.5">
-      {message.blocks.map((block, i) => {
-        if (block.kind === "thinking") return <ThinkingBlock key={i} text={block.text} />;
-        if (block.kind === "tool") return <ToolBlock key={i} block={block} />;
+    <div className="space-y-3">
+      {segments.map((seg, i) => {
+        if (seg.type === "activity") {
+          // the activity box is "running" only while the run is live and no
+          // answer text has started yet (so it shows the spinner meaningfully)
+          return (
+            <AgentActivity
+              key={i}
+              steps={seg.blocks}
+              running={message.running && !hasText}
+              evidenceCount={evidenceCount}
+            />
+          );
+        }
+        const block = seg.block;
         if (block.kind === "text")
           return (
             <TextBlock key={i} text={block.text} citations={message.citations} onCite={onCite} />
           );
         if (block.kind === "clarification")
           return (
-            <div
-              key={i}
-              className="rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm"
-            >
+            <div key={i} className="rounded-xl border border-brand/30 bg-brand/5 px-4 py-3 text-sm">
               <p className="font-medium text-foreground">{block.question}</p>
               {block.options.length > 0 && (
                 <p className="mt-1 text-muted-foreground">
@@ -38,6 +71,7 @@ export function AssistantMessageView({
         return null;
       })}
 
+      {/* first-tick state: running but nothing emitted yet */}
       {message.running && message.blocks.length === 0 && (
         <div className="flex items-center gap-2 py-0.5 text-sm text-muted-foreground">
           <span className="size-3 animate-spin rounded-full border border-muted-foreground/40 border-t-transparent" />

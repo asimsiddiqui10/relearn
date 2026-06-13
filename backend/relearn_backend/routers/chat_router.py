@@ -103,6 +103,9 @@ async def send_message(
     # persist the user message (backend owns user rows, spec/02), then commit so
     # the AI service — reading the same DB — sees it as history.
     session.add(ChatMessage(session_id=session_id, role="user", content=body.message))
+    # auto-title an untitled session from its first message (sidebar labels)
+    if not cs.title:
+        cs.title = body.message[:60] + ("…" if len(body.message) > 60 else "")
     await session.commit()
 
     settings = get_settings()

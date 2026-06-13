@@ -92,7 +92,13 @@ async def stream_turn(
             yield Delta(text=delta.content)
 
         for tc in delta.tool_calls or []:
-            slot = tc_acc.setdefault(tc.index, {"id": "", "name": "", "args": ""})
+            # OpenAI streams one tool call per `index`, splitting args across
+            # deltas. Gemini's OpenAI-compat layer sends index=None for EVERY
+            # call with full args in a single delta — so keying by index alone
+            # collapses multiple calls into one slot and concatenates their JSON
+            # into garbage. Key by index when present, else by the call id.
+            key = tc.index if tc.index is not None else tc.id
+            slot = tc_acc.setdefault(key, {"id": "", "name": "", "args": ""})
             if tc.id:
                 slot["id"] = tc.id
             if tc.function and tc.function.name:
@@ -100,7 +106,8 @@ async def stream_turn(
             if tc.function and tc.function.arguments:
                 slot["args"] += tc.function.arguments
 
-    tool_calls = [_assemble(slot) for _, slot in sorted(tc_acc.items())]
+    # insertion order preserves the model's tool-call sequence
+    tool_calls = [_assemble(slot) for slot in tc_acc.values()]
     yield Delta(
         done=True,
         tool_calls=tool_calls,
