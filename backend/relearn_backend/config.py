@@ -1,10 +1,15 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# repo-root .env, resolved from this file — loads no matter the process CWD
+# (services run from ai/ and backend/). Real env vars still take precedence.
+_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=str(_ENV_FILE), extra="ignore")
 
     database_url: str = "postgresql+asyncpg://relearn:relearn@localhost:5432/relearn"
     redis_url: str = "redis://localhost:6379/0"
@@ -13,6 +18,8 @@ class Settings(BaseSettings):
     s3_bucket: str = "relearn"
     s3_access_key: str = "relearn"
     s3_secret_key: str = "relearn-dev"
+    # absolute path: durable host-filesystem mirror of raw PDFs (see ai/storage)
+    local_cache_dir: str = ""
 
     backend_port: int = 8000
     ai_service_url: str = "http://localhost:8001"

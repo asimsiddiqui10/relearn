@@ -7,11 +7,15 @@ the browser fetch PDFs directly without proxying bytes through the backend.
 from __future__ import annotations
 
 import asyncio
+import logging
+from pathlib import Path
 
 import boto3
 from botocore.config import Config
 
 from relearn_backend.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 
 def _client():
@@ -38,6 +42,20 @@ async def put_pdf(checksum: str, data: bytes) -> str:
         )
 
     await asyncio.get_running_loop().run_in_executor(None, _put)
+
+    # durable host mirror of the raw PDF (matches ai/storage key layout)
+    base = get_settings().local_cache_dir
+    if base:
+        p = Path(base) / key
+
+        def _mirror() -> None:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(data)
+
+        try:
+            await asyncio.get_running_loop().run_in_executor(None, _mirror)
+        except OSError as e:
+            logger.warning("local mirror write failed for %s: %s", key, e)
     return key
 
 

@@ -15,6 +15,9 @@ dist/
 build/
 .next/
 
+# local persistence: postgres/redis/minio data + raw/parsed corpus cache
+.data/
+
 # OS / editor
 .DS_Store
 .idea/

@@ -36,8 +36,9 @@ export async function* streamChat(
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
 
-    // SSE frames are separated by a blank line
-    const frames = buffer.split("\n\n");
+    // SSE frames are separated by a blank line — the server emits CRLF
+    // (\r\n\r\n), so split on either CRLF or LF, else nothing ever parses.
+    const frames = buffer.split(/\r?\n\r?\n/);
     buffer = frames.pop() ?? "";
     for (const frame of frames) {
       const event = parseFrame(frame);
@@ -49,7 +50,7 @@ export async function* streamChat(
 function parseFrame(frame: string): AgentEvent | null {
   let eventType = "message";
   const dataLines: string[] = [];
-  for (const line of frame.split("\n")) {
+  for (const line of frame.split(/\r?\n/)) {
     if (line.startsWith("event:")) eventType = line.slice(6).trim();
     else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
   }

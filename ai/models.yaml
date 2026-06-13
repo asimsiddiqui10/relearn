@@ -8,7 +8,7 @@ roles:
   small:
     primary: gemini-flash
   embeddings:
-    primary: bge-m3-local
+    primary: gemini-embedding
 
 models:
   gemini-flash:
@@ -49,6 +49,14 @@ models:
       parallel_tools: true
     context_window: 200000
 
+  gemini-embedding:
+    provider: openai_compat
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+    api_key_env: GEMINI_API_KEY
+    model_id: gemini-embedding-001
+    dim: 1024  # output_dimensionality — matches the pgvector(1024) column
+
+  # local fallback (needs the FlagEmbedding extra + ~2GB model download)
   bge-m3-local:
     provider: local_embeddings
     model_id: BAAI/bge-m3

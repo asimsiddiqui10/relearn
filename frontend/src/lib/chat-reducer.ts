@@ -45,6 +45,24 @@ export function reduce(a: AssistantMessage, ev: AgentEvent): void {
       }
       break;
     }
+    case "evidence_added": {
+      // resolve [E#] chips live — don't wait for the final citation_map
+      const { eid, chunk_id, document_id, page, bbox, polygon, heading_breadcrumb } =
+        ev as unknown as {
+          eid: string;
+          chunk_id: string;
+          document_id: string;
+          page: number | null;
+          bbox: number[] | null;
+          polygon: number[][] | null;
+          heading_breadcrumb: string | null;
+        };
+      a.citations = {
+        ...a.citations,
+        [eid]: { eid, chunk_id, document_id, page, bbox, polygon, heading_breadcrumb },
+      };
+      break;
+    }
     case "clarification_required":
       a.blocks.push({
         kind: "clarification",

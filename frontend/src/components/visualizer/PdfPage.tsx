@@ -5,13 +5,13 @@ import type { PDFDocumentProxy } from "@/lib/pdf";
 import { Spinner } from "@/components/ui/spinner";
 
 /**
- * One PDF page rendered to canvas at devicePixelRatio (crisp on retina; classic
- * blurry-PDF bug prevented by spec). An absolutely-positioned SVG overlay sits
- * on top in raw Marker coordinates: viewBox = the page's Marker dimensions,
- * preserveAspectRatio="none" — one coordinate space, no client-side conversion.
+ * A single PDF page: a crisp canvas render (scaled by devicePixelRatio so it
+ * never goes blurry on retina) with a highlight overlay painted on top.
  *
- * Phase 0 renders no highlights; the overlay scaffolding and the highlights[]
- * prop are here so Phase 1 citation highlighting drops in without restructuring.
+ * The overlay is an SVG whose viewBox is the page's *Marker* coordinate space
+ * (preserveAspectRatio="none"), so citation bboxes/polygons — which come from
+ * Marker — drop in with zero client-side coordinate math. If a page has no
+ * Marker dimensions we skip the overlay rather than risk a misplaced box.
  */
 export interface Highlight {
   id: string;
@@ -23,60 +23,69 @@ export interface Highlight {
 interface Props {
   doc: PDFDocumentProxy;
   pageNumber: number; // 1-based
-  width: number; // CSS px target width
+  width: number; // target CSS width in px
   markerDims?: [number, number]; // [w, h] in Marker coords for this page
   highlights?: Highlight[];
-  visible: boolean; // virtualization: only render canvas when in view (±1)
+  visible: boolean; // only paint the canvas when scrolled near (virtualization)
 }
 
 export function PdfPage({ doc, pageNumber, width, markerDims, highlights = [], visible }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [aspect, setAspect] = useState<number | null>(null); // height / width
+  const taskRef = useRef<{ cancel: () => void; promise: Promise<void> } | null>(null);
+  const [aspect, setAspect] = useState<number | null>(null); // h / w
   const [rendered, setRendered] = useState(false);
   const [error, setError] = useState(false);
 
+  // (re)render whenever the width changes — so resizing the panel re-rasterizes
+  // at the new size (crisp, never upscaled) and the overlay stays aligned.
   useEffect(() => {
-    if (!visible || rendered) return;
+    if (!visible || width === 0) return;
     let cancelled = false;
-
     (async () => {
       try {
         const page = await doc.getPage(pageNumber);
-        const baseViewport = page.getViewport({ scale: 1 });
-        const scale = width / baseViewport.width;
-        const viewport = page.getViewport({ scale });
+        const base = page.getViewport({ scale: 1 });
+        const viewport = page.getViewport({ scale: width / base.width });
         if (cancelled) return;
-
         setAspect(viewport.height / viewport.width);
 
         const canvas = canvasRef.current;
         if (!canvas) return;
+        // cancel any in-flight render on this canvas (rapid resize) — otherwise
+        // pdf.js throws "cannot use the same canvas during multiple render()".
+        taskRef.current?.cancel();
+
         const dpr = window.devicePixelRatio || 1;
-        canvas.width = Math.floor(viewport.width * dpr);
+        canvas.width = Math.floor(viewport.width * dpr); // backing-store px
         canvas.height = Math.floor(viewport.height * dpr);
-        canvas.style.width = `${viewport.width}px`;
-        canvas.style.height = `${viewport.height}px`;
 
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
         ctx.scale(dpr, dpr);
-        await page.render({ canvasContext: ctx, viewport }).promise;
-        if (!cancelled) setRendered(true);
-      } catch {
+        const task = page.render({ canvasContext: ctx, viewport });
+        taskRef.current = task;
+        await task.promise;
+        if (!cancelled) {
+          setRendered(true);
+          setError(false);
+        }
+      } catch (e) {
+        // resize cancellations are expected — only surface real failures
+        if ((e as Error)?.name === "RenderingCancelledException") return;
         if (!cancelled) setError(true);
       }
     })();
-
     return () => {
       cancelled = true;
+      taskRef.current?.cancel();
     };
-  }, [doc, pageNumber, width, visible, rendered]);
+  }, [doc, pageNumber, width, visible]);
 
   const height = aspect ? width * aspect : width * 1.294; // US-letter fallback
 
   return (
     <div
-      className="relative mx-auto overflow-hidden rounded-md border border-border bg-white shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+      className="relative mx-auto overflow-hidden rounded-lg border border-border bg-white shadow-sm"
       style={{ width, height }}
     >
       {!rendered && !error && (
@@ -89,57 +98,57 @@ export function PdfPage({ doc, pageNumber, width, markerDims, highlights = [], v
           Failed to render page {pageNumber}
         </div>
       )}
-      <canvas ref={canvasRef} className="block" />
+      {/* CSS fills the container; the backing store is rendered at width·dpr,
+          so it scales smoothly during a drag and re-rasterizes crisp after. */}
+      <canvas ref={canvasRef} className="block h-full w-full" />
 
-      {/* Highlight overlay — drawn in raw Marker coordinates. Disabled when the
-          page has no Marker dimensions (degrade: never misplace a highlight). */}
       {markerDims && highlights.length > 0 && (
         <svg
           className="pointer-events-none absolute inset-0 h-full w-full"
           viewBox={`0 0 ${markerDims[0]} ${markerDims[1]}`}
           preserveAspectRatio="none"
         >
-          {highlights.map((h) => {
-            // active highlight uses the clay brand color → ties the clay
-            // citation chip you clicked to the region it points at.
-            const fill = h.active ? "var(--brand)" : "var(--brand)";
-            const style = {
-              fill,
-              fillOpacity: h.active ? 0.22 : 0.1,
-              stroke: fill,
-              strokeOpacity: h.active ? 0.85 : 0.35,
-            };
-            if (h.polygon && h.polygon.length >= 3) {
-              return (
-                <polygon
-                  key={h.id}
-                  points={h.polygon.map((p) => p.join(",")).join(" ")}
-                  style={style}
-                  strokeWidth={2}
-                  className={h.active ? "cite-pulse" : undefined}
-                />
-              );
-            }
-            if (h.bbox) {
-              const [x0, y0, x1, y1] = h.bbox;
-              return (
-                <rect
-                  key={h.id}
-                  x={x0}
-                  y={y0}
-                  width={x1 - x0}
-                  height={y1 - y0}
-                  rx={2}
-                  style={style}
-                  strokeWidth={2}
-                  className={h.active ? "cite-pulse" : undefined}
-                />
-              );
-            }
-            return null;
-          })}
+          {highlights.map((h) => <HighlightShape key={h.id} h={h} />)}
         </svg>
       )}
     </div>
   );
+}
+
+/** Light-yellow highlighter look: soft amber fill, firmer amber edge when active. */
+function HighlightShape({ h }: { h: Highlight }) {
+  const style: React.CSSProperties = {
+    fill: "#fde047", // yellow-300 — the highlighter wash
+    fillOpacity: h.active ? 0.38 : 0.2,
+    stroke: "#ca8a04", // yellow-700 edge
+    strokeOpacity: h.active ? 0.9 : 0.3,
+  };
+  const cls = h.active ? "cite-pulse" : undefined;
+
+  if (h.polygon && h.polygon.length >= 3) {
+    return (
+      <polygon
+        points={h.polygon.map((p) => p.join(",")).join(" ")}
+        style={style}
+        strokeWidth={2}
+        className={cls}
+      />
+    );
+  }
+  if (h.bbox) {
+    const [x0, y0, x1, y1] = h.bbox;
+    return (
+      <rect
+        x={x0}
+        y={y0}
+        width={x1 - x0}
+        height={y1 - y0}
+        rx={3}
+        style={style}
+        strokeWidth={2}
+        className={cls}
+      />
+    );
+  }
+  return null;
 }
